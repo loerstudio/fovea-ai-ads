@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { MultiUserMCPManager } from '@/lib/multi-user-mcp';
+import { ClaudeDirectMCPManager } from '@/lib/claude-direct-mcp';
 import { db } from '@/lib/db';
 import { users, campaigns, adSets, ads } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -34,16 +34,14 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const mcpManager = new MultiUserMCPManager();
+    const mcpManager = new ClaudeDirectMCPManager();
 
     // Get creatives data (dalla sessione o database)
     const selectedCreatives = await getSelectedCreatives(approvedCreativeIds);
 
-    // Launch approved campaigns via MCP
-    const launchResults = await mcpManager.launchApprovedCampaign({
-      userId: userId,
+    // Launch approved campaigns via your MCP
+    const launchResults = await mcpManager.launchApprovedCampaigns({
       userMetaToken: user.metaAccessToken,
-      userAdAccountId: user.metaAdAccountId,
       approvedCreatives: selectedCreatives,
       strategy: strategy,
       budget: budget
@@ -127,23 +125,23 @@ export async function POST(req: NextRequest) {
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Launch campaign error:', error);
 
     // Specific error handling
-    if (error.message.includes('budget')) {
+    if (error?.message?.includes('budget')) {
       return NextResponse.json({
         error: 'Budget insufficiente. Verifica i limiti del tuo account Meta.',
       }, { status: 400 });
     }
 
-    if (error.message.includes('targeting')) {
+    if (error?.message?.includes('targeting')) {
       return NextResponse.json({
         error: 'Errore configurazione targeting. Contatta il supporto.',
       }, { status: 400 });
     }
 
-    if (error.message.includes('creative')) {
+    if (error?.message?.includes('creative')) {
       return NextResponse.json({
         error: 'Errore caricamento creatività. Riprova con immagini diverse.',
       }, { status: 400 });
