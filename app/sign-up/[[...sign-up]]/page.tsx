@@ -33,6 +33,30 @@ export default function SignUpPage() {
           </div>
         </div>
 
+        {/* Demo Quick Access Button */}
+        <div className="mb-4">
+          <button
+            onClick={() => window.location.href = '/dashboard'}
+            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-medium py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
+          >
+            <span>🚀 Account Fast Demo</span>
+          </button>
+          <p className="text-center text-xs text-gray-500 mt-2">
+            Accesso immediato per testare tutte le funzioni
+            <br />
+            <strong className="text-green-400">Demo User: demo@fovea.ai | Pass: DemoFovea2024!</strong>
+          </p>
+        </div>
+
+        <div className="relative mb-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/20"></div>
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-black px-2 text-gray-400">oppure registrati</span>
+          </div>
+        </div>
+
         <div className="bg-white/5 backdrop-blur-lg rounded-xl p-1 border border-white/10">
           <SignUp
             appearance={{
