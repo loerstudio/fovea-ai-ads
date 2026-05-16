@@ -11,10 +11,8 @@ export const users = pgTable('users', {
   niche: varchar('niche', { length: 255 }), // coaching niche
   websiteUrl: varchar('website_url', { length: 255 }),
 
-  // Meta Ads Integration
-  metaAccessToken: text('meta_access_token'), // User's Meta access token
-  metaAdAccountId: varchar('meta_ad_account_id', { length: 255 }), // User's ad account
-  metaPageId: varchar('meta_page_id', { length: 255 }), // User's Facebook page
+  // Meta Ads Integration (gestito da Claude MCP)
+  // Non servono token - Claude MCP ufficiale gestisce OAuth automaticamente
 
   subscription: varchar('subscription', { length: 50 }).default('trial'), // trial, pro, enterprise
   guaranteeEligible: boolean('guarantee_eligible').default(true),

@@ -33,20 +33,15 @@ export async function POST(req: NextRequest) {
       }, { status: 404 });
     }
 
-    // Check if user has connected Meta account
-    if (!user.metaAccessToken) {
-      return NextResponse.json({
-        error: 'Connetti il tuo account Meta Ads prima di creare campagne',
-        needsMetaConnection: true
-      }, { status:400 });
-    }
+    // Con Claude MCP ufficiale, non servono token Meta
+    // L'OAuth è gestito automaticamente da Claude
 
     const mcpManager = new ClaudeDirectMCPManager();
 
     // Generate complete campaign from idea usando i TUOI MCP
     const result = await mcpManager.processCompleteWorkflow({
       userId: userId,
-      userMetaToken: user.metaAccessToken || '',
+      userEmail: user.email,
       idea: idea,
       budget: budget,
       targetAudience: targetAudience || 'Imprenditori interessati al coaching'

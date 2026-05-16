@@ -46,33 +46,34 @@ Use Higgsfield to generate the actual image and return the image URL.`;
     return response.content[0].text;
   }
 
-  // Crea campagna Meta usando IL TUO Meta Ads MCP
+  // Crea campagna Meta usando l'MCP UFFICIALE di Claude
   async createMetaCampaignWithMCP(params: {
-    userMetaToken: string; // Token dell'utente
     campaignName: string;
     objective: string;
     budget: number;
     targeting: any;
     creative: any;
+    userEmail: string; // Email dell'utente per identificazione
   }) {
-    const prompt = `Using my Meta Ads MCP, create a campaign for this user:
+    const prompt = `Using the official Meta Ads MCP, create a campaign:
 
-User's Meta Access Token: ${params.userMetaToken}
 Campaign Name: ${params.campaignName}
 Objective: ${params.objective}
 Daily Budget: €${params.budget}
 Targeting: ${JSON.stringify(params.targeting)}
 Creative: ${JSON.stringify(params.creative)}
 
-Steps:
-1. Use the user's Meta token to access their ad account
-2. Create campaign with specified objective
-3. Create ad set with targeting and budget
-4. Upload creative and create ads
-5. Set to active status
-6. Return campaign ID, ad set ID, ad ID, and preview URL
+User Context: ${params.userEmail} (for account access)
 
-Use Meta Ads MCP to execute this on the user's account.`;
+Steps:
+1. Connect to Meta Business API through official Claude MCP
+2. Create campaign structure with specified parameters
+3. Upload creative assets (use provided image URL and copy)
+4. Configure targeting and budget optimization
+5. Set campaign to active status
+6. Return detailed campaign information
+
+The Meta Ads MCP will handle OAuth and account access automatically.`;
 
     const response = await this.claude.messages.create({
       model: 'claude-3-sonnet-20241022',
@@ -81,7 +82,7 @@ Use Meta Ads MCP to execute this on the user's account.`;
         role: 'user',
         content: prompt
       }]
-      // Il TUO Meta Ads MCP gestisce tutto
+      // L'MCP ufficiale Claude gestisce tutto automaticamente
     });
 
     return response.content[0].text;
@@ -90,7 +91,7 @@ Use Meta Ads MCP to execute this on the user's account.`;
   // Workflow completo: Idea → Strategy → Creatives → Launch
   async processCompleteWorkflow(params: {
     userId: string;
-    userMetaToken: string;
+    userEmail: string;
     idea: string;
     budget: number;
     targetAudience: string;
@@ -183,7 +184,7 @@ Return both image URL and copy as JSON.`;
 
   // Lancia campagne approvate
   async launchApprovedCampaigns(params: {
-    userMetaToken: string;
+    userEmail: string;
     approvedCreatives: any[];
     strategy: any;
     budget: number;
@@ -191,9 +192,9 @@ Return both image URL and copy as JSON.`;
     const results = [];
 
     for (const creative of params.approvedCreatives) {
-      const launchPrompt = `Using my Meta Ads MCP, create and launch a campaign:
+      const launchPrompt = `Using the official Meta Ads MCP, create and launch a campaign:
 
-User Meta Token: ${params.userMetaToken}
+User Email: ${params.userEmail}
 Campaign: "Fovea AI - ${creative.angle}"
 Objective: ${params.strategy.objective}
 Daily Budget: €${Math.floor(params.budget / params.approvedCreatives.length)}

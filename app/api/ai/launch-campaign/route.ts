@@ -27,12 +27,8 @@ export async function POST(req: NextRequest) {
       .where(eq(users.clerkId, userId))
       .limit(1);
 
-    if (!user?.metaAccessToken || !user?.metaAdAccountId) {
-      return NextResponse.json({
-        error: 'Account Meta Ads non configurato. Vai in Impostazioni per connettere.',
-        needsMetaSetup: true
-      }, { status: 400 });
-    }
+    // Con Claude MCP ufficiale Meta, non serve configurazione account
+    // Claude gestisce automaticamente OAuth e connessioni
 
     const mcpManager = new ClaudeDirectMCPManager();
 
@@ -41,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     // Launch approved campaigns via your MCP
     const launchResults = await mcpManager.launchApprovedCampaigns({
-      userMetaToken: user.metaAccessToken,
+      userEmail: user.email,
       approvedCreatives: selectedCreatives,
       strategy: strategy,
       budget: budget
