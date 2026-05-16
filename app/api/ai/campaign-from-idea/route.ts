@@ -83,23 +83,23 @@ export async function POST(req: NextRequest) {
       message: `Generati ${result.creatives.length} creativi per la tua idea!`
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Campaign from idea error:', error);
 
     // User-friendly error messages
-    if (error.message.includes('MCP')) {
+    if (error?.message?.includes('MCP')) {
       return NextResponse.json({
         error: 'Servizio AI temporaneamente non disponibile. Riprova tra qualche minuto.',
       }, { status: 503 });
     }
 
-    if (error.message.includes('Meta')) {
+    if (error?.message?.includes('Meta')) {
       return NextResponse.json({
         error: 'Errore connessione Meta Ads. Verifica le autorizzazioni del tuo account.',
       }, { status: 400 });
     }
 
-    if (error.message.includes('Higgsfield')) {
+    if (error?.message?.includes('Higgsfield')) {
       return NextResponse.json({
         error: 'Generazione creative temporaneamente non disponibile.',
       }, { status: 503 });
