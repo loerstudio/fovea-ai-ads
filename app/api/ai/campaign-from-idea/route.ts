@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { MultiUserMCPManager } from '@/lib/multi-user-mcp';
+import { ClaudeDirectMCPManager } from '@/lib/claude-direct-mcp';
 import { db } from '@/lib/db';
 import { users, campaigns } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -41,12 +41,12 @@ export async function POST(req: NextRequest) {
       }, { status:400 });
     }
 
-    const mcpManager = new MultiUserMCPManager();
+    const mcpManager = new ClaudeDirectMCPManager();
 
-    // Generate complete campaign from idea
-    const result = await mcpManager.createCampaignFromIdea({
+    // Generate complete campaign from idea usando i TUOI MCP
+    const result = await mcpManager.processCompleteWorkflow({
       userId: userId,
-      userMetaToken: user.metaAccessToken,
+      userMetaToken: user.metaAccessToken || '',
       idea: idea,
       budget: budget,
       targetAudience: targetAudience || 'Imprenditori interessati al coaching'
