@@ -43,7 +43,7 @@ Use Higgsfield to generate the actual image and return the image URL.`;
       // I tuoi MCP sono automaticamente disponibili!
     });
 
-    return response.content[0].text;
+    return (response.content[0] as any).text;
   }
 
   // Crea campagna Meta usando l'MCP UFFICIALE di Claude
@@ -85,7 +85,7 @@ The Meta Ads MCP will handle OAuth and account access automatically.`;
       // L'MCP ufficiale Claude gestisce tutto automaticamente
     });
 
-    return response.content[0].text;
+    return (response.content[0] as any).text;
   }
 
   // Workflow completo: Idea → Strategy → Creatives → Launch
@@ -118,7 +118,7 @@ Return structured JSON response.`;
       messages: [{ role: 'user', content: strategyPrompt }]
     });
 
-    const strategy = JSON.parse(strategyResponse.content[0].text);
+    const strategy = JSON.parse((strategyResponse.content[0] as any).text);
 
     // Step 2: Genera creative per ogni angolo usando Higgsfield MCP
     const creatives = [];
@@ -151,7 +151,7 @@ Return both image URL and copy as JSON.`;
       });
 
       try {
-        const creative = JSON.parse(creativeResponse.content[0].text);
+        const creative = JSON.parse((creativeResponse.content[0] as any).text);
         creatives.push({
           id: `creative_${creatives.length + 1}`,
           angle: angle.name,
@@ -225,7 +225,7 @@ Use the user's Meta account via their access token.`;
 
       results.push({
         creative_id: creative.id,
-        response: launchResponse.content[0].text,
+        response: (launchResponse.content[0] as any).text,
         status: 'launched'
       });
     }
@@ -263,7 +263,7 @@ Return detailed optimization report with actions taken.`;
       messages: [{ role: 'user', content: optimizePrompt }]
     });
 
-    return response.content[0].text;
+    return (response.content[0] as any).text;
   }
 }
 

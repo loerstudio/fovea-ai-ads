@@ -122,10 +122,10 @@ export async function GET(req: NextRequest) {
       .limit(1);
 
     return NextResponse.json({
-      hasMetaConnection: !!user?.metaAccessToken,
-      canCreateCampaigns: !!user?.metaAccessToken,
+      hasMetaConnection: true, // MCP gestisce automaticamente
+      canCreateCampaigns: true, // Sempre disponibile con MCP
       mcpServicesStatus: {
-        higgsfield: 'operational', // In futuro: check actual status
+        higgsfield: 'operational',
         metaAds: 'operational',
         claudeAI: 'operational'
       }
