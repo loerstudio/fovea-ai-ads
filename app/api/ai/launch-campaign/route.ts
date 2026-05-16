@@ -7,9 +7,15 @@ import { eq } from 'drizzle-orm';
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let userId = 'demo-user';
+
+    // In produzione con Clerk configurato
+    if (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      const { userId: clerkUserId } = await auth();
+      if (!clerkUserId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      userId = clerkUserId;
     }
 
     const { approvedCreativeIds, strategy, budget } = await req.json();
@@ -20,12 +26,23 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Get user data with Meta credentials
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.clerkId, userId))
-      .limit(1);
+    // Get user data (demo o reale)
+    let user;
+    if (userId === 'demo-user') {
+      user = {
+        id: 'demo-user-id',
+        email: 'demo@fovea.ai',
+        name: 'Demo User',
+        websiteUrl: 'https://demo.example.com'
+      };
+    } else {
+      const [dbUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.clerkId, userId))
+        .limit(1);
+      user = dbUser;
+    }
 
     // Con Claude MCP ufficiale Meta, non serve configurazione account
     // Claude gestisce automaticamente OAuth e connessioni

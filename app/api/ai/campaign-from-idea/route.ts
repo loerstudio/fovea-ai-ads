@@ -7,9 +7,15 @@ import { eq } from 'drizzle-orm';
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let userId = 'demo-user';
+
+    // In produzione con Clerk configurato
+    if (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      const { userId: clerkUserId } = await auth();
+      if (!clerkUserId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      userId = clerkUserId;
     }
 
     const { idea, budget, targetAudience } = await req.json();
@@ -20,17 +26,29 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Get user data
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.clerkId, userId))
-      .limit(1);
+    // Get user data (demo o reale)
+    let user;
+    if (userId === 'demo-user') {
+      user = {
+        id: 'demo-user-id',
+        email: 'demo@fovea.ai',
+        name: 'Demo User',
+        companyName: 'Demo Company',
+        websiteUrl: 'https://demo.example.com'
+      };
+    } else {
+      const [dbUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.clerkId, userId))
+        .limit(1);
 
-    if (!user) {
-      return NextResponse.json({
-        error: 'Utente non trovato'
-      }, { status: 404 });
+      if (!dbUser) {
+        return NextResponse.json({
+          error: 'Utente non trovato'
+        }, { status: 404 });
+      }
+      user = dbUser;
     }
 
     // Con Claude MCP ufficiale, non servono token Meta
@@ -47,28 +65,34 @@ export async function POST(req: NextRequest) {
       targetAudience: targetAudience || 'Imprenditori interessati al coaching'
     });
 
-    // Save campaign data to database for tracking
-    const campaignData = {
-      userId: user.id,
-      platform: 'meta',
-      name: `AI Campaign: ${idea.substring(0, 50)}...`,
-      status: 'draft',
-      objective: result.strategy.objective,
-      budget: budget.toString(),
-      budgetType: 'monthly',
-      aiOptimized: true,
-      metadata: JSON.stringify({
-        originalIdea: idea,
-        targetAudience: targetAudience,
-        strategy: result.strategy,
-        creativeCount: result.creatives.length
-      })
-    };
+    // Save campaign data to database for tracking (skip in demo mode)
+    let savedCampaign;
+    if (userId !== 'demo-user') {
+      const campaignData = {
+        userId: user.id,
+        platform: 'meta',
+        name: `AI Campaign: ${idea.substring(0, 50)}...`,
+        status: 'draft',
+        objective: result.strategy.objective,
+        budget: budget.toString(),
+        budgetType: 'monthly',
+        aiOptimized: true,
+        metadata: JSON.stringify({
+          originalIdea: idea,
+          targetAudience: targetAudience,
+          strategy: result.strategy,
+          creativeCount: result.creatives.length
+        })
+      };
 
-    const [savedCampaign] = await db
-      .insert(campaigns)
-      .values(campaignData)
-      .returning();
+      const [dbCampaign] = await db
+        .insert(campaigns)
+        .values(campaignData)
+        .returning();
+      savedCampaign = dbCampaign;
+    } else {
+      savedCampaign = { id: 'demo-campaign-id' };
+    }
 
     return NextResponse.json({
       success: true,
@@ -109,17 +133,29 @@ export async function POST(req: NextRequest) {
 // GET route per status check
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    let userId = 'demo-user';
+
+    // In produzione con Clerk configurato
+    if (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      const { userId: clerkUserId } = await auth();
+      if (!clerkUserId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      userId = clerkUserId;
     }
 
-    // Check user's Meta connection status
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.clerkId, userId))
-      .limit(1);
+    // Check user's Meta connection status (demo user sempre connesso)
+    let user;
+    if (userId === 'demo-user') {
+      user = { metaAccessToken: 'demo-token' };
+    } else {
+      const [dbUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.clerkId, userId))
+        .limit(1);
+      user = dbUser;
+    }
 
     return NextResponse.json({
       hasMetaConnection: true, // MCP gestisce automaticamente
