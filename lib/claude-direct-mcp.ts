@@ -10,40 +10,45 @@ export class ClaudeDirectMCPManager {
     });
   }
 
-  // Genera creative usando IL TUO Higgsfield MCP
-  async generateCreativeWithHiggsfield(params: {
+  // Genera creative usando fal.ai + gptimage2
+  async generateCreativeWithFalAI(params: {
     product: string;
     style: string;
     platform: string;
     concept: string;
   }) {
-    const prompt = `Using my Higgsfield MCP, generate a high-converting ad creative:
+    // Costruisci prompt ottimizzato per gptimage2
+    const imagePrompt = `Professional ${params.style} advertisement for ${params.product}. ${params.concept}. High-quality marketing design, ${params.platform === 'meta' ? 'square 1:1 aspect ratio' : 'landscape 16:9 ratio'}, modern coaching business aesthetic, clean typography, professional colors, conversion-optimized layout. No text overlay, pure visual impact.`;
 
-Product: ${params.product}
-Style: ${params.style}
-Platform: ${params.platform}
-Concept: ${params.concept}
+    try {
+      // Call fal.ai API directly
+      const response = await fetch('https://fal.run/fal-ai/flux-lora', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Key ${process.env.FAL_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prompt: imagePrompt,
+          image_size: params.platform === 'meta' ? '1024x1024' : '1920x1080',
+          num_inference_steps: 28,
+          guidance_scale: 3.5,
+          num_images: 1
+        })
+      });
 
-Create a professional marketing image with:
-- Clean, modern design optimized for ${params.platform}
-- ${params.platform === 'meta' ? '1080x1080 square format' : '1200x628 landscape'}
-- High conversion potential
-- Professional coaching/business aesthetic
-- No branding mentions (Claude, Higgsfield, etc.)
+      const result = await response.json();
 
-Use Higgsfield to generate the actual image and return the image URL.`;
-
-    const response = await this.claude.messages.create({
-      model: 'claude-3-sonnet-20241022',
-      max_tokens: 2000,
-      messages: [{
-        role: 'user',
-        content: prompt
-      }]
-      // I tuoi MCP sono automaticamente disponibili!
-    });
-
-    return (response.content[0] as any).text;
+      if (result.images && result.images[0]) {
+        return result.images[0].url;
+      } else {
+        throw new Error('No image generated');
+      }
+    } catch (error) {
+      console.error('fal.ai error:', error);
+      // Fallback: return placeholder
+      return `https://via.placeholder.com/${params.platform === 'meta' ? '1080x1080' : '1200x628'}/9333EA/FFFFFF?text=AI+Creative`;
+    }
   }
 
   // Crea campagna Meta usando l'MCP UFFICIALE di Claude
@@ -120,51 +125,66 @@ Return structured JSON response.`;
 
     const strategy = JSON.parse((strategyResponse.content[0] as any).text);
 
-    // Step 2: Genera creative per ogni angolo usando Higgsfield MCP
+    // Step 2: Genera creative per ogni angolo usando fal.ai
     const creatives = [];
     for (const angle of strategy.creativeAngles) {
-      const creativePrompt = `Using my Higgsfield MCP, create a high-converting ad creative:
+      try {
+        // Generate image with fal.ai
+        const imageUrl = await this.generateCreativeWithFalAI({
+          product: params.idea,
+          style: angle.visualStyle || 'modern professional coaching',
+          platform: 'meta',
+          concept: angle.description
+        });
+
+        // Generate copy with Claude
+        const copyPrompt = `Create high-converting ad copy for this concept:
 
 Business Idea: ${params.idea}
 Creative Angle: ${angle.name} - ${angle.description}
-Style: ${angle.visualStyle || 'modern professional coaching'}
-Platform: Meta Ads (1080x1080)
+Framework: ${angle.copyFramework || 'PAS'}
 
-Generate a professional image that:
-- Represents the coaching/business concept
-- Uses ${angle.visualStyle} aesthetic
-- Is optimized for conversions
-- Looks professional and trustworthy
-
-Also generate the ad copy:
+Generate:
 - Headline (40 chars max)
-- Primary text (125 chars) using ${angle.copyFramework || 'PAS'} framework
+- Primary text (125 chars)
 - Description (25 chars)
 - Call-to-action
 
-Return both image URL and copy as JSON.`;
+Return as JSON format: {"headline": "", "primaryText": "", "description": "", "cta": ""}`;
 
-      const creativeResponse = await this.claude.messages.create({
-        model: 'claude-3-sonnet-20241022',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: creativePrompt }]
-      });
+        const copyResponse = await this.claude.messages.create({
+          model: 'claude-3-sonnet-20241022',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: copyPrompt }]
+        });
 
-      try {
-        const creative = JSON.parse((creativeResponse.content[0] as any).text);
+        let copy;
+        try {
+          copy = JSON.parse((copyResponse.content[0] as any).text);
+        } catch {
+          copy = {
+            headline: 'Transform Your Business',
+            primaryText: 'Discover proven strategies used by successful entrepreneurs.',
+            description: 'Start your journey today',
+            cta: 'Learn More'
+          };
+        }
+
         creatives.push({
           id: `creative_${creatives.length + 1}`,
           angle: angle.name,
-          imageUrl: creative.imageUrl,
-          copy: creative.copy,
+          imageUrl: imageUrl,
+          copy: copy,
           estimatedCTR: angle.expectedCTR || '2.5%'
         });
-      } catch (e) {
-        // Fallback se JSON parsing fallisce
+
+      } catch (error) {
+        console.error('Creative generation error:', error);
+        // Fallback creative
         creatives.push({
           id: `creative_${creatives.length + 1}`,
           angle: angle.name,
-          imageUrl: 'https://example.com/generated-creative.jpg',
+          imageUrl: 'https://via.placeholder.com/1080x1080/9333EA/FFFFFF?text=AI+Creative',
           copy: {
             headline: 'Transform Your Business',
             primaryText: 'Discover proven strategies used by successful entrepreneurs.',

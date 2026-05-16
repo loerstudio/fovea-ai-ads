@@ -2,7 +2,7 @@
 
 ## MCP da Configurare sul TUO Claude Desktop
 
-### 1. **Meta Ads MCP (Ufficiale Claude)**
+### **Solo Meta Ads MCP (Ufficiale Claude)**
 ```json
 {
   "mcpServers": {
@@ -14,17 +14,7 @@
 }
 ```
 
-### 2. **Higgsfield MCP per Creative AI**
-```json
-{
-  "mcpServers": {
-    "higgsfield": {
-      "command": "npx",
-      "args": ["-y", "@higgsfield/mcp-server"]
-    }
-  }
-}
-```
+**Note:** Per le immagini creative usiamo fal.ai API direttamente (non MCP)
 
 ## Configurazione Claude Desktop
 
@@ -60,8 +50,8 @@ ANTHROPIC_API_KEY=sk-ant-api03-xxxx  # LA TUA chiave Claude
 
 - **Claude API**: €0.02 per campagna completa
 - **MCP Meta**: Gratis (ufficiale Claude)
-- **Higgsfield**: TUO abbonamento esistente
-- **Totale**: €0.02 per workflow completo
+- **fal.ai images**: €0.01-0.05 per immagine creative
+- **Totale**: €0.03-0.07 per workflow completo con creative AI
 
 ## Test
 
