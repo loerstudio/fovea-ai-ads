@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Brain, Sparkles, ArrowRight, Target, DollarSign,
-  Users, Image, Loader2, CheckCircle, Zap, Wand2
+  Users, Image, Loader2, CheckCircle, Zap, Wand2, Shield
 } from 'lucide-react'
 
 export default function NewCampaignPage() {
