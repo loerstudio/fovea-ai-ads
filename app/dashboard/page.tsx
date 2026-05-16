@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useUser } from '@clerk/nextjs'
 import {
   Brain, TrendingUp, DollarSign, Target, Zap, Plus,
   Settings, LogOut, ChevronDown, MoreVertical,
@@ -30,8 +29,14 @@ const platformData = [
 ]
 
 export default function DashboardPage() {
-  const { user } = useUser()
   const [selectedPeriod, setSelectedPeriod] = useState('7d')
+  const [userEmail, setUserEmail] = useState('')
+
+  useEffect(() => {
+    // Get user email from localStorage (quick signup) or fallback
+    const email = localStorage.getItem('fovea_user_email') || 'user@fovea.ai'
+    setUserEmail(email)
+  }, [])
 
   const totalSpend = 26000
   const totalRevenue = 89260
@@ -78,8 +83,8 @@ export default function DashboardPage() {
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full"></div>
             <div className="flex-1">
-              <div className="text-sm font-medium text-white">{user?.firstName || 'Coach'}</div>
-              <div className="text-xs text-gray-400">{user?.emailAddresses?.[0]?.emailAddress}</div>
+              <div className="text-sm font-medium text-white">Coach</div>
+              <div className="text-xs text-gray-400">{userEmail}</div>
             </div>
           </div>
           <button className="flex items-center space-x-2 text-gray-400 hover:text-white text-sm">

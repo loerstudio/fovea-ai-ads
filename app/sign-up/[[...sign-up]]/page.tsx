@@ -1,10 +1,33 @@
 'use client'
 
-import { SignUp } from '@clerk/nextjs'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Brain, CheckCircle } from 'lucide-react'
 
 export default function SignUpPage() {
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleQuickSignup = async () => {
+    if (!email || !email.includes('@')) {
+      alert('Inserisci una email valida')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      // Salva email e vai subito alla dashboard
+      localStorage.setItem('fovea_user_email', email)
+      localStorage.setItem('fovea_user_verified', 'true')
+
+      // Redirect immediato
+      window.location.href = '/dashboard'
+    } catch (error) {
+      console.error('Quick signup error:', error)
+      setLoading(false)
+    }
+  }
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
@@ -35,54 +58,43 @@ export default function SignUpPage() {
           </div>
         </div>
 
-        {/* Demo Quick Access Button */}
-        <div className="mb-4">
-          <button
-            onClick={() => window.location.href = '/dashboard'}
-            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-medium py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
-          >
-            <span>🚀 Account Fast Demo</span>
-          </button>
-          <p className="text-center text-xs text-gray-500 mt-2">
-            Accesso immediato per testare tutte le funzioni
-            <br />
-            <strong className="text-green-400">Demo User: demo@fovea.ai | Pass: DemoFovea2024!</strong>
-          </p>
-        </div>
+        {/* Quick Signup Form */}
+        <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="la-tua-email@esempio.com"
+                className="w-full px-3 py-3 bg-black/50 border border-white/20 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                onKeyPress={(e) => e.key === 'Enter' && handleQuickSignup()}
+              />
+            </div>
 
-        <div className="relative mb-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/20"></div>
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-black px-2 text-gray-400">oppure registrati</span>
-          </div>
-        </div>
+            <button
+              onClick={handleQuickSignup}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Accesso...</span>
+                </>
+              ) : (
+                <span>🚀 Accesso Immediato</span>
+              )}
+            </button>
 
-        <div className="bg-white/5 backdrop-blur-lg rounded-xl p-1 border border-white/10">
-          <SignUp
-            appearance={{
-              baseTheme: 'dark',
-              elements: {
-                rootBox: "w-full",
-                card: "bg-transparent shadow-none",
-                headerTitle: "hidden",
-                headerSubtitle: "hidden",
-                socialButtonsBlockButton:
-                  "bg-white/10 border border-white/20 hover:bg-white/20 text-white",
-                dividerLine: "bg-white/20",
-                dividerText: "text-gray-400",
-                formFieldLabel: "text-gray-300",
-                formFieldInput:
-                  "bg-black/50 border-white/20 text-white placeholder:text-gray-500",
-                formButtonPrimary:
-                  "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500",
-                footerActionLink: "text-purple-400 hover:text-purple-300",
-                identityPreviewText: "text-gray-300",
-                identityPreviewEditButton: "text-purple-400 hover:text-purple-300",
-              },
-            }}
-          />
+            <p className="text-center text-xs text-gray-500">
+              Inserisci la tua email e accedi subito.<br />
+              <span className="text-purple-400">Nessuna verifica richiesta per il test!</span>
+            </p>
+          </div>
         </div>
 
         <p className="text-center text-gray-400 text-sm mt-6">
