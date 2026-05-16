@@ -50,17 +50,17 @@ export async function POST(req: NextRequest) {
     // Save campaign results to database
     const savedCampaigns = [];
 
-    for (const result of launchResults) {
-      // Create campaign record
+    for (const [index, result] of launchResults.entries()) {
+      // Create campaign record (mock data for now)
       const [savedCampaign] = await db
         .insert(campaigns)
         .values({
           userId: user.id,
           platform: 'meta',
-          externalId: result.campaign_id,
+          externalId: `campaign_${Date.now()}_${index}`,
           name: `Fovea AI - ${result.creative_id}`,
           status: 'active',
-          objective: strategy.objective,
+          objective: strategy.objective || 'CONVERSIONS',
           budget: Math.floor(budget / launchResults.length).toString(),
           budgetType: 'daily',
           aiOptimized: true,
@@ -73,9 +73,9 @@ export async function POST(req: NextRequest) {
         .insert(adSets)
         .values({
           campaignId: savedCampaign.id,
-          externalId: result.ad_set_id,
+          externalId: `adset_${Date.now()}_${index}`,
           name: `AdSet - ${result.creative_id}`,
-          targetingCriteria: strategy.targeting,
+          targetingCriteria: strategy.targeting || {},
           budget: Math.floor(budget / launchResults.length).toString(),
           status: 'active'
         })
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
         .insert(ads)
         .values({
           adSetId: savedAdSet.id,
-          externalId: result.ad_id,
+          externalId: `ad_${Date.now()}_${index}`,
           name: `Ad - ${creative?.angle || result.creative_id}`,
           type: 'image',
           headline: creative?.copy?.headline || 'AI Generated Headline',
@@ -102,9 +102,9 @@ export async function POST(req: NextRequest) {
 
       savedCampaigns.push({
         ...savedCampaign,
-        metaPreviewUrl: result.preview_url,
+        metaPreviewUrl: 'https://facebook.com/ads/preview',
         adSetId: savedAdSet.id,
-        adId: result.ad_id
+        adId: `ad_${Date.now()}_${index}`
       });
     }
 
